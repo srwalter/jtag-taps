@@ -3,7 +3,7 @@ use jtag_taps::statemachine::JtagSM;
 use jtag_taps::taps::Taps;
 
 fn main() {
-    let cable = cable::new_from_string("jlink", 1 << 20).expect("cable");
+    let cable = cable::new_from_string("olimex-tiny-h", 1 << 20).expect("cable");
     let jtag = JtagSM::new(cable);
     let mut taps = Taps::new(jtag);
     taps.detect();

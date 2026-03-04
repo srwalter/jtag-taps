@@ -290,6 +290,24 @@ impl JtagKey {
         }
     }
 
+    pub fn new_olimex(clock: u32) -> Self {
+        libftd2xx::set_vid_pid(0x15ba, 0x2a).expect("vid");
+        let description = "Olimex OpenOCD JTAG ARM-USB-TINY-H A";
+        let ft = Ftdi::with_description(description).expect("new");
+        let ft = Ft2232h::try_from(ft).expect("try");
+        let mut ft = Mpsse::new(ft, clock);
+        ft.ft.set_latency_timer(Duration::from_millis(0)).expect("latency");
+        ft.ft.set_gpio_upper(PIN_N_TRST | PIN_N_SRST, 0).expect("pins");
+
+        let builder = MpsseCmdBuilder::new()
+            .set_gpio_lower(PIN_TMS, LOWER_OUTPUT_PINS);
+        ft.ft.send(builder.as_slice()).expect("send");
+
+        JtagKey {
+            ft,
+        }
+    }
+
     /// JtagKey adapters implement the option SRST signal.  This function puts the system in reset.
     pub fn assert_srst(&mut self) {
         self.ft.ft.set_gpio_upper(PIN_N_TRST, UPPER_OUTPUT_PINS).expect("pins");

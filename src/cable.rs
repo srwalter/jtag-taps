@@ -53,6 +53,7 @@ pub trait Cable {
 pub fn new_from_string(name: &str, clock: u32) -> Result<Box<dyn Cable>,String> {
     match name {
         "jtagkey" => Ok(Box::new(mpsse::JtagKey::new(clock, true))),
+        "olimex-tiny-h" => Ok(Box::new(mpsse::JtagKey::new_olimex(clock))),
         "ef3" => Ok(Box::new(ft232r::Ft232r::easyflash3(clock))),
         "usbblaster" => Ok(Box::new(usbblaster::UsbBlaster::new())),
         "jlink" => Ok(Box::new(jlink::JLink::new(clock))),
