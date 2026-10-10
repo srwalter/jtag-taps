@@ -16,6 +16,7 @@ impl Ft232r {
     /// Create a new Ft232r.  `description` is the value passed to `Ftd::with_description` to
     /// select which hardware to use.
     pub fn easyflash3(baud: u32) -> Self {
+        #[cfg(unix)]
         libftd2xx::set_vid_pid(0x0403, 0x8738).expect("vid");
         Ft232r::new("EasyFlash 3", baud, 3, 0, 1, 2)
     }

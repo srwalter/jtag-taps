@@ -105,7 +105,7 @@ impl<T: FtdiMpsse + MpsseCmdExecutor> Cable for Mpsse<T>
 
     fn finish_read(&mut self, mut bits: usize) -> Vec<u8>
     {
-        let (orig_bits, bytes, pause_after, write) = self.queued_read_state.remove(0);
+        let (orig_bits, bytes, write, pause_after) = self.queued_read_state.remove(0);
         assert_eq!(bits, orig_bits);
 
         if self.queued_reads.is_empty() {
@@ -291,6 +291,7 @@ impl JtagKey {
     }
 
     pub fn new_olimex(clock: u32) -> Self {
+        #[cfg(unix)]
         libftd2xx::set_vid_pid(0x15ba, 0x2a).expect("vid");
         let description = "Olimex OpenOCD JTAG ARM-USB-TINY-H A";
         let ft = Ftdi::with_description(description).expect("new");
