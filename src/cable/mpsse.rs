@@ -105,7 +105,7 @@ impl<T: FtdiMpsse + MpsseCmdExecutor> Cable for Mpsse<T>
 
     fn finish_read(&mut self, mut bits: usize) -> Vec<u8>
     {
-        let (orig_bits, bytes, pause_after, write) = self.queued_read_state.remove(0);
+        let (orig_bits, bytes, write, pause_after) = self.queued_read_state.remove(0);
         assert_eq!(bits, orig_bits);
 
         if self.queued_reads.is_empty() {
