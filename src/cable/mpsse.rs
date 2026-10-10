@@ -291,6 +291,7 @@ impl JtagKey {
     }
 
     pub fn new_olimex(clock: u32) -> Self {
+        #[cfg(unix)]
         libftd2xx::set_vid_pid(0x15ba, 0x2a).expect("vid");
         let description = "Olimex OpenOCD JTAG ARM-USB-TINY-H A";
         let ft = Ftdi::with_description(description).expect("new");

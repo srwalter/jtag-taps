@@ -23,6 +23,7 @@ impl Default for UsbBlaster {
 impl UsbBlaster {
     /// Create a new UsbBlaster.
     pub fn new() -> Self {
+        #[cfg(unix)]
         libftd2xx::set_vid_pid(0x16c0, 0x06ad).expect("vid");
         let mut ft = Ftdi::with_description("USB-JTAG-IF").expect("new");
         ft.purge_all().expect("purge");
@@ -100,7 +101,7 @@ impl Cable for UsbBlaster {
         if bits == 0 {
             bits = 8;
         }
-        self.read_write_data(&buf, bits as u8, false) 
+        self.read_write_data(&buf, bits as u8, false)
     }
 
     fn write_data(&mut self, data: &[u8], bits: u8, pause_after: bool)
