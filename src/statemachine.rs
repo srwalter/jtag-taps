@@ -3,13 +3,13 @@
 //! `JtagSM` will get to that state by the most efficient path, based on the current state.
 use crate::cable::Cable;
 
-#[derive(Clone,Copy,PartialEq)]
+#[derive(Clone,Copy,Debug,PartialEq)]
 pub enum Register {
     Data,
     Instruction
 }
 
-#[derive(Clone,Copy,PartialEq)]
+#[derive(Clone,Copy,Debug,PartialEq)]
 pub enum JtagState {
     Reset = 0,
     Idle = 1,
@@ -103,7 +103,7 @@ impl<T, U> JtagSM<T>
         exit1ir.edges   = vec![JtagState::PauseIR as usize, JtagState::UpdateIR as usize];
         pauseir.edges   = vec![JtagState::PauseIR as usize, JtagState::Exit2IR as usize];
         exit2ir.edges   = vec![JtagState::ShiftIR as usize, JtagState::UpdateIR as usize];
-        updateir.edges  = vec![JtagState::Idle as usize, JtagState::SelectIR as usize];
+        updateir.edges  = vec![JtagState::Idle as usize, JtagState::SelectDR as usize];
 
         let graph = vec![reset, idle,
             selectdr, capturedr, shiftdr, exit1dr, pausedr, exit2dr, updatedr,
@@ -127,14 +127,24 @@ impl<T, U> JtagSM<T>
     }
 
     fn get_path(&mut self, state: JtagState) -> Vec<usize> {
+        if self.state == state {
+            return Vec::new();
+        }
+
         let mut paths = Vec::new();
 
         let mut p = Path::new(self.graph[self.state as usize].edges[0]);
         p.path = vec![0];
+        if p.state == state as usize {
+            return p.path;
+        }
         paths.push(p);
 
         let mut p = Path::new(self.graph[self.state as usize].edges[1]);
         p.path = vec![1];
+        if p.state == state as usize {
+            return p.path;
+        }
         paths.push(p);
 
         loop {
@@ -159,7 +169,7 @@ impl<T, U> JtagSM<T>
                 }
                 newpaths.push(p2);
             }
-            
+
             paths = newpaths;
         }
     }
@@ -171,7 +181,7 @@ impl<T, U> JtagSM<T>
         }
 
         let path = self.get_path(state);
-        //println!("Path from {} to {}: {:?}", self.state as usize, state as usize, path);
+        //println!("Path from {:?} to {:?}: {:?}", self.state, state, path);
         self.cable.change_mode(&path, true);
         self.state = state;
     }
@@ -258,4 +268,3 @@ impl<T, U> JtagSM<T>
         data
     }
 }
-
