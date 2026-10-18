@@ -141,7 +141,7 @@ impl<T: FtdiMpsse + MpsseCmdExecutor> Cable for Mpsse<T>
             buf[len-1] >>= 7;
 
             bits -= 1;
-            if bits >= 1 {
+            if bits % 8 != 0 {
                 // Shift the bits from clock_bits
                 buf[len-2] >>= 8 - (bits % 8);
 
