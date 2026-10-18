@@ -22,11 +22,21 @@ pub struct Mpsse<T> {
 impl<T: FtdiMpsse + MpsseCmdExecutor> Mpsse<T>
     where <T as MpsseCmdExecutor>::Error: std::fmt::Debug
 {
-    pub fn new(mut ft: T, clock: u32) -> Self
+    /// Builds the `Mpsse` struct without GPIO confiugration. For internal usage.
+    pub fn new(ft: T, clock: u32) -> Self
     {
+        Self::new_with(ft, clock, |_| ())
+    }
+
+    /// Builds the `Mpsse` struct, with a closure `f` for necessary configuration
+    /// like `set_gpio_lower`, `set_gpio_upper` and `set_latency_timer`.
+    pub fn new_with(mut ft: T, clock: u32, f: impl FnOnce(&mut T)) -> Self {
         ft.initialize_mpsse_default().expect("init");
         ft.set_clock(clock).expect("set clock");
 
+        f(&mut ft);
+
+        ft.set_clock(clock).expect("set clock");
         let builder = MpsseCmdBuilder::new()
             .disable_3phase_data_clocking()
             .disable_adaptive_data_clocking();
@@ -131,7 +141,7 @@ impl<T: FtdiMpsse + MpsseCmdExecutor> Cable for Mpsse<T>
             buf[len-1] >>= 7;
 
             bits -= 1;
-            if bits >= 1 {
+            if bits % 8 != 0 {
                 // Shift the bits from clock_bits
                 buf[len-2] >>= 8 - (bits % 8);
 
