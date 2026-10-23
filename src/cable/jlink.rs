@@ -55,7 +55,10 @@ fn bit_append (dst: &mut Vec<u8>, mut dst_bits: usize, src: &[u8], src_bits: usi
 
 impl JLink {
     pub fn new(clock: u32) -> Self {
-        let device = rusb::open_device_with_vid_pid(0x1366, 0x0105).expect("no jlink attached");
+        let device = rusb::open_device_with_vid_pid(0x1366, 0x0105).unwrap_or_else(|| {
+            rusb::open_device_with_vid_pid(0x1366, 0x0101)
+                .expect("no jlink attached")
+        });
         let descriptor = device.device().active_config_descriptor().expect("active config");
         for i in descriptor.interfaces() {
             for d in i.descriptors() {
@@ -81,6 +84,8 @@ impl JLink {
                 let read_endpoint = read_endpoint.unwrap();
                 let write_endpoint = write_endpoint.unwrap();
 
+                device.claim_interface(i.number()).expect("claim interface");
+
                 let mut buf = [0; 2];
                 let _ = device.read_bulk(read_endpoint, &mut buf, Duration::from_millis(10));
 
@@ -99,8 +104,8 @@ impl JLink {
                 };
 
                 jlink.get_status();
-                jlink.set_clock(clock);
                 jlink.set_interface(0);
+                jlink.set_clock(clock);
                 jlink.deassert_trst();
                 jlink.deassert_srst();
 

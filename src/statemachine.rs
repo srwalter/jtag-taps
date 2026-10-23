@@ -258,7 +258,7 @@ impl<T, U> JtagSM<T>
             self.change_mode(JtagState::ShiftIR);
         }
         let data = self.cable.queue_read_write(data, bits, pause_after);
-        if pause_after {
+        if data && pause_after {
             if reg == Register::Data {
                 self.state = JtagState::PauseDR;
             } else {
