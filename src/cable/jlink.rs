@@ -55,7 +55,7 @@ fn bit_append (dst: &mut Vec<u8>, mut dst_bits: usize, src: &[u8], src_bits: usi
 
 impl JLink {
     pub fn new(clock: u32) -> Self {
-        let device = rusb::open_device_with_vid_pid(0x1366, 0x0105).unwrap_or_else(|| {
+        let mut device = rusb::open_device_with_vid_pid(0x1366, 0x0105).unwrap_or_else(|| {
             rusb::open_device_with_vid_pid(0x1366, 0x0101)
                 .expect("no jlink attached")
         });
